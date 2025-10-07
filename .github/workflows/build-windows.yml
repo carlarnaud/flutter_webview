@@ -1,7 +1,7 @@
 name: Build Windows App
 
 on:
-  workflow_dispatch:   # 🔹 Permet de le lancer manuellement depuis GitHub
+  workflow_dispatch:
 
 jobs:
   build:
@@ -16,13 +16,25 @@ jobs:
         with:
           channel: stable
 
-      - name: Enable Windows
+      - name: Enable Windows desktop
         run: flutter config --enable-windows-desktop
 
-      - name: Get dependencies
+      - name: Pub get
         run: flutter pub get
 
-      - name: Build Windows release
+      # 🔹 Génère l'icône Windows depuis assets/icon.png
+      - name: Generate launcher icons (Windows)
+        run: dart run flutter_launcher_icons
+
+      # (optionnel) Vérifie que l'icône a bien été générée
+      - name: Verify Windows icon generated
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "windows/runner/resources/app_icon.ico")) {
+            Write-Error "app_icon.ico not found. Check flutter_launcher_icons config and assets/icon.png"
+          }
+
+      - name: Build Windows (Release)
         run: flutter build windows --release
 
       - name: Upload artifact
